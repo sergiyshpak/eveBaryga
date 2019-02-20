@@ -13,7 +13,7 @@ typesDict=  {}
 locDict=  {}
 systemSec= {} 
 
-SysaSysa={}
+from SysaSysafile import SysaSysa
 
 with open("mapSolarSystems100.csv", "r") as ins:
     for line in ins:
@@ -23,9 +23,23 @@ with open("mapSolarSystems100.csv", "r") as ins:
         systemSec[my_list[2]] = my_list[4]
         
         
+#with open("morfik_file.json", "r") as read_file:
+#    data = json.load(read_file)
 
-with open("morfik_file.json", "r") as read_file:
-    data = json.load(read_file)
+#response = requests.get("https://api.evemarketer.com/v1/markets/types/11399?language=en")   #morphite
+response = requests.get("https://api.evemarketer.com/v1/markets/types/16274?language=en")
+data = json.loads(response.text)
+
+
+
+totProfLimiter=1000000
+totProfJumpLimiter=100000
+
+
+#    distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+
+#     "/"+systemDict.get(str(buyitem['system_id']))+"/"
+
+
 
 for sellitem in data['sell']:
     for buyitem in data['buy']:
@@ -38,38 +52,46 @@ for sellitem in data['sell']:
             dohoda=quantity*buyitem['price']                
             profit=dohoda-potrata
 
+            if (profit>totProfLimiter):
+        
+                dist_to_fly=998899
+                dist_to_fly=int(SysaSysa.get(systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id'])),976976))
+                if (dist_to_fly==976976):
+                    distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+"/"+systemDict.get(str(buyitem['system_id']))+"/"
+                    rdis = requests.get(distURL)
+                    parsed_dist_json = json.loads(rdis.text)
+                    dist_to_fly=parsed_dist_json["jumps"]            
+    
+                SysaSysa[systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id']))]=dist_to_fly
+                SysaSysa[systemDict.get(systemDict.get(str(buyitem['system_id']))+str(sellitem['system_id']))]=dist_to_fly
 
-#    distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+
-#     "/"+systemDict.get(str(buyitem['system_id']))+"/"
-     
-            dist_to_fly=998899
-            dist_to_fly=SysaSysa.get(systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id'])),976976)
-            if (dist_to_fly==976976):
-                distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+"/"+systemDict.get(str(buyitem['system_id']))+"/"
-                rdis = requests.get(distURL)
-                parsed_dist_json = json.loads(rdis.text)
-                dist_to_fly=parsed_dist_json["jumps"]            
+                if (profit/dist_to_fly>totProfJumpLimiter):                
+                    print("Buy here |"+ 
+                          systemDict.get(str(sellitem['system_id']))+"|"+ 
+                          #sellitem['station']['name']+" ",
+                          str(sellitem['station']['security']),
+                          "| and sell here|"+
+                          systemDict.get(str(buyitem['system_id']))+"|"+  
+                          #buyitem['station']['name']+" ",
+                          str(buyitem['station']['security']),"         "+
+                          "|quantity|",quantity,"|profit|",profit,
+                          "|dist_to_fly|"+str(dist_to_fly)+
+                          "|profit per jump|"+str(profit/dist_to_fly))
+                         
 
-            SysaSysa[systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id']))]=dist_to_fly
-            SysaSysa[systemDict.get(systemDict.get(str(buyitem['system_id']))+str(sellitem['system_id']))]=dist_to_fly
-            
-            print("Buy here |"+ 
-                  systemDict.get(str(sellitem['system_id']))+"|"+ 
-                  #sellitem['station']['name']+" ",
-                  str(sellitem['station']['security']),
-                  "| and sell here|"+
-                  systemDict.get(str(buyitem['system_id']))+"|"+  
-                  #buyitem['station']['name']+" ",
-                  str(buyitem['station']['security']),"         "+
-                  "|quantity|",quantity,"|profit|",profit,
-                  "|dist_to_fly|"+str(dist_to_fly)+
-                  "|profit per jump|"+str(profit/dist_to_fly))
-                 
+
+
             
 #        print(buyitem['station']['name'],"----",buyitem['station']['security'],"---",
 #              buyitem['region']['name'],"--buy--",buyitem['price'],"-----howmuch---",
 #              buyitem['volume_remain'])
 
+
+with open('SysaSysafile.py','w') as file:
+    file.write("SysaSysa = { \n")
+    for k in SysaSysa.keys():
+        file.write("'%s':'%s', \n" % (k, SysaSysa[k]))
+    file.write("}")
 
             
 def fussfu1():       
