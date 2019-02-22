@@ -29,63 +29,66 @@ with open("mapSolarSystems100.csv", "r") as ins:
 #azu plag 17455
 #comp azu plag 28421
 
-response = requests.get("https://api.evemarketer.com/v1/markets/types/17455?language=en")
-dataNaProd = json.loads(response.text)
-
-response = requests.get("https://api.evemarketer.com/v1/markets/types/28421?language=en")
-dataSkupka = json.loads(response.text)
-
+#    distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+
+#     "/"+systemDict.get(str(buyitem['system_id']))+"/"
 
 
 
 totProfLimiter=1000000
 totProfJumpLimiter=100000
 
+rudik={'17455':'28421', '18':'28422', '17456':'28423', '46685':'46701'}
 
-#    distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+
-#     "/"+systemDict.get(str(buyitem['system_id']))+"/"
-
-print ("------------------------ "+dataNaProd['type']['name']+" ------------------------")
-
-for sellitem in dataNaProd['sell']:
-    for buyitem in dataSkupka['buy']:
-        if (100*sellitem['price']<buyitem['price']):
-            
-            quantity=buyitem['volume_remain']*100
-            if (sellitem['volume_remain']<buyitem['volume_remain']*100):
-                quantity=sellitem['volume_remain']
-            potrata=quantity*sellitem['price']
-            dohoda=quantity/100*buyitem['price']                
-            profit=dohoda-potrata
-
-            if (profit>totProfLimiter):
-        
-                dist_to_fly=998899
-                dist_to_fly=int(SysaSysa.get(systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id'])),976976))
-                if (dist_to_fly==976976):
-                    distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+"/"+systemDict.get(str(buyitem['system_id']))+"/"
-                    rdis = requests.get(distURL)
-                    parsed_dist_json = json.loads(rdis.text)
-                    dist_to_fly=parsed_dist_json["jumps"]            
+for para in rudik:
     
-                SysaSysa[systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id']))]=dist_to_fly
-                SysaSysa[systemDict.get(systemDict.get(str(buyitem['system_id']))+str(sellitem['system_id']))]=dist_to_fly
-
-                if (profit/dist_to_fly>totProfJumpLimiter):                
-                    print("Buy here |"+ 
-                          systemDict.get(str(sellitem['system_id']))+"|"+ 
-                          str(sellitem['price'])+"|"+
-                          #sellitem['station']['name']+" ",
-                          str(sellitem['station']['security']),
-                          "| and sell here|"+
-                          systemDict.get(str(buyitem['system_id']))+"|"+  
-                          str(buyitem['price'])+"|"+
-                          #buyitem['station']['name']+" ",
-                          str(buyitem['station']['security']),"         "+
-                          "|quantity|",quantity,"|profit|",profit,
-                          "|dist_to_fly|"+str(dist_to_fly)+
-                          "|profit per jump|"+str(profit/dist_to_fly))
-                         
+    response = requests.get("https://api.evemarketer.com/v1/markets/types/"+para+"?language=en")
+    dataNaProd = json.loads(response.text)
+    
+    response = requests.get("https://api.evemarketer.com/v1/markets/types/"+rudik[para]+"?language=en")
+    dataSkupka = json.loads(response.text)
+    
+    
+    print ("------------------------ "+dataNaProd['type']['name']+" ------------------------")
+    
+    for sellitem in dataNaProd['sell']:
+        for buyitem in dataSkupka['buy']:
+            if (100*sellitem['price']<buyitem['price']):
+                
+                quantity=buyitem['volume_remain']*100
+                if (sellitem['volume_remain']<buyitem['volume_remain']*100):
+                    quantity=sellitem['volume_remain']
+                potrata=quantity*sellitem['price']
+                dohoda=quantity/100*buyitem['price']                
+                profit=dohoda-potrata
+    
+                if (profit>totProfLimiter):
+            
+                    dist_to_fly=998899
+                    dist_to_fly=int(SysaSysa.get(systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id'])),976976))
+                    if (dist_to_fly==976976):
+                        distURL="http://everest.kaelspencer.com/jump/"+systemDict.get(str(sellitem['system_id']))+"/"+systemDict.get(str(buyitem['system_id']))+"/"
+                        rdis = requests.get(distURL)
+                        parsed_dist_json = json.loads(rdis.text)
+                        dist_to_fly=parsed_dist_json["jumps"]            
+        
+                    SysaSysa[systemDict.get(str(sellitem['system_id']))+systemDict.get(str(buyitem['system_id']))]=dist_to_fly
+                    SysaSysa[systemDict.get(systemDict.get(str(buyitem['system_id']))+str(sellitem['system_id']))]=dist_to_fly
+    
+                    if (profit/dist_to_fly>totProfJumpLimiter):                
+                        print("Buy here |"+ 
+                              systemDict.get(str(sellitem['system_id']))+"|"+ 
+                              str(sellitem['price'])+"|"+
+                              #sellitem['station']['name']+" ",
+                              str(sellitem['station']['security']),
+                              "| and sell here|"+
+                              systemDict.get(str(buyitem['system_id']))+"|"+  
+                              str(buyitem['price'])+"|"+
+                              #buyitem['station']['name']+" ",
+                              str(buyitem['station']['security']),"         "+
+                              "|quantity|",quantity,"|profit|",profit,
+                              "|dist_to_fly|"+str(dist_to_fly)+
+                              "|profit per jump|"+str(profit/dist_to_fly))
+                             
 
 
 
